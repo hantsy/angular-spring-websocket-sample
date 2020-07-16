@@ -40,5 +40,6 @@ export class AppComponent implements OnInit, OnDestroy {
   sendMessage() {
     console.log("sending message:" + this.message);
     this.socket.send(this.message);
+    this.message = null;
   }
 }

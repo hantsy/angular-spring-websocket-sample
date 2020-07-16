@@ -17,6 +17,7 @@ repositories {
 }
 
 dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("jakarta.websocket:jakarta.websocket-api")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
