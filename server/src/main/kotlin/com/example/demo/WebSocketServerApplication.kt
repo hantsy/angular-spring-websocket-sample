@@ -58,13 +58,12 @@ class ChatSocketHandler(val mapper: ObjectMapper, val messages: MessageRepositor
                 .map { it.payloadAsText }
                 .map { Message(body = it, sentAt = Instant.now()) }
                 .flatMap { this.messages.save(it) }
-                .doOnNext { println(it) }
-                .subscribe()
+                .subscribe({ println(it) }, { println(it) })
 
         return session.send(
-                Mono.delay(Duration.ofMillis(100))
-                        .thenMany(this.messages.getMessagesBy().map { session.textMessage(toJson(it)) })
-
+                Mono.delay(Duration.ofMillis(1000))
+                        .thenMany(this.messages.getMessagesBy())
+                        .map { session.textMessage(toJson(it)) }
         ).then()
 
     }

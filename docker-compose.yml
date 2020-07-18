@@ -5,12 +5,12 @@ services:
   mongodb:
     image: mongo:4
     environment:
-#      - MONGO_INITDB_DATABASE=chat
+      # - MONGO_INITDB_DATABASE=chat
       # - MONGO_INITDB_ROOT_USERNAME=root
       # - MONGO_INITDB_ROOT_PASSWORD=secret
     volumes:
       - mongodata:/data/db
-#      - ./mongo-initdb.d:/docker-entrypoint-initdb.d
+      # - ./mongo-initdb.d:/docker-entrypoint-initdb.d
     ports:
       - "27017:27017"
 
