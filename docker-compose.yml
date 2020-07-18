@@ -4,7 +4,7 @@ version: "3.3" # specify docker-compose version
 services:
   mongodb:
     image: mongo:4
-    environment:
+    #environment:
       # - MONGO_INITDB_DATABASE=chat
       # - MONGO_INITDB_ROOT_USERNAME=root
       # - MONGO_INITDB_ROOT_PASSWORD=secret

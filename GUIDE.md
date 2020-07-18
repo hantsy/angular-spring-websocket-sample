@@ -205,5 +205,5 @@ Open two browser windows, and type some words in the input box and hit send butt
 
 It works.
 
-The complete codes is shared on my github account, check the [feat/reactor-sinks]() for this demo.
+The complete codes is shared on my github account, check the [feat/reactor-sinks](https://github.com/hantsy/angular-spring-websocket-sample/tree/feat/reactor-sinks) for this demo.
 
