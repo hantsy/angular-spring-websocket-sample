@@ -18,7 +18,7 @@ import java.time.Duration
 
 
 @SpringBootTest()
-class WebsocketServerApplicationTests {
+class WebSocketServerApplicationTests {
 
     lateinit var client: WebSocketClient;
 

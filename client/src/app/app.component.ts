@@ -1,5 +1,4 @@
 import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -11,7 +10,6 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'client';
   message = '';
   messages: any[];
-  sub: Subscription;
   socket: WebSocket;
 
   constructor(private zone: NgZone) {
@@ -34,7 +32,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.sub && this.sub.unsubscribe();
+    this.socket && this.socket.close();
   }
 
   sendMessage() {

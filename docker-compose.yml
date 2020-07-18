@@ -1,17 +1,21 @@
-version: '3.3' # specify docker-compose version
+version: "3.3" # specify docker-compose version
 
 # Define the services/containers to be run
 services:
-        
-  mongodb: 
-    image: mongo 
+  mongodb:
+    image: mongo:4
+    environment:
+#      - MONGO_INITDB_DATABASE=chat
+      # - MONGO_INITDB_ROOT_USERNAME=root
+      # - MONGO_INITDB_ROOT_PASSWORD=secret
     volumes:
       - mongodata:/data/db
+#      - ./mongo-initdb.d:/docker-entrypoint-initdb.d
     ports:
       - "27017:27017"
 
 volumes:
-  mongodata:  
+  mongodata:
 #    driver: local-persist
 #    driver_opts:
-#      mountpoint: ./data  
+#      mountpoint: ./data
