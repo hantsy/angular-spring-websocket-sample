@@ -8,9 +8,9 @@ If you have some experience of Linux or Unix, you must know the `tail` command. 
 tail -f -n 1000 access.log
 ```
 
-Similarly, Mongo provides a tailable cursor feature which acts as the tail command exactly. But there are some limitations, the tailable cursor only works on the capped collections, when a document is inserted, it will be emitted to the subscribers. A capped collection is different from a normal collection, it has a size limit of the whole collection and a maximum count of the stored documents, if the limit is reached, the old documents will be discarded. And a document can be inserted into the capped collection like the the normal one, but it can not be deleted by calling delete command.
+Similarly, Mongo provides a tailable cursor feature which acts as the tail command exactly. But there are some limitations, the tailable cursor only works on the capped collections, when a document is inserted, it will be emitted to the subscribers immediately. A capped collection is different from a normal collection, it has a size limit of the whole collection and a maximum count limitation of the stored documents, if the limit is reached, the old documents will be discarded. A document can be inserted into the capped collection like the the normal one, but it can not be deleted by calling delete command.
 
-Let's  do a small refactory on the former codes we've completed in the last post. 
+Let's  do a small refactory on the former codes we've completed in the last post and migrate it to use MongoDB tailable cursors based query as an infinite stream.
 
 Firstly add *Spring Data MongoDB Reactive* as part of dependencies.
 
@@ -38,7 +38,7 @@ interface MessageRepository : ReactiveMongoRepository<Message, String> {
 }
 ```
 
-On the `getMessagesBy` method, we add a `@Tailable` annotation, which means it will use tailable cursor to retieve the `Message` documents from the **messages** collection.
+On the `getMessagesBy` method, we add a `@Tailable` annotation, which means it will use tailable cursor to retrieve the `Message` documents from the **messages** collection.
 
 Modify the `ChatSocketHandler` to the following.
 
@@ -66,7 +66,7 @@ class ChatSocketHandler(val mapper: ObjectMapper, val messages: MessageRepositor
 }
 ```
 
-When  receiving a message from client, save it into **messages** collection, at the same the server will emit the messages in **messages** collection to the client.
+When  receiving a message from a  WebSocket client, save it into the **messages** collection, then  send the messages in **messages** collection back to the client.
 
 By default, Spring Data MongoDB does not create a *capped* collection for the `Message` document, more details please check the [Infinite stream of tailable cursors](https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#tailable-cursors) section of  Spring Data Mongo reference.
 
@@ -88,11 +88,17 @@ Else create a *capped* collection directly if it is not existed.
 template.createCollection("messages", CollectionOptions.empty().capped().size(100000).maxDocuments(1000))
 ```
 
-No need change on the client codes.
+No need change on the client codes. 
 
-Now run the client and server applications respectively.
+Make sure there is a running MongoDB server, simply run it in a Docker container.
 
-Open a browser add a message, you can see the changes in the **messages** collections.
+```bash
+docker-compose up mongodb
+```
+
+Next let's run the client and server applications respectively. 
+
+Open a browser and try to send a message, you can see the changes in the **messages** collections.
 
 Execute a query  in the mongo shell.
 
@@ -108,4 +114,5 @@ Open two browsers, try to send some messages.
 
 It works exactly as the former version.
 
-The complete codes is shared on my github account, check the [here](https://github.com/hantsy/angular-spring-websocket-sample) for this demo.
+The complete codes for this post can be found  check [here](https://github.com/hantsy/angular-spring-websocket-sample), clone it and follow the steps described in the README.md and play it yourself..
+

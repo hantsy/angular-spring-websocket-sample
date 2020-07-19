@@ -8,7 +8,7 @@ WebSocket is a standalone spec defined in [RFC6455 ](https://tools.ietf.org/html
 
 In this post, we will start creating a simple chat application which uses Spring WebFlux based WebSocket APIs to build the server side, and uses Angular as client to communicate with the server side.  Initially we will use a Reactor specific Sink  as the message queue, and then we will switch to use the trailable cursor on the capped collections in MongoDB to simplify the work.  
 
-As introduced in [my original post](https://medium.com/@hantsy/reactive-programming-with-spring-5-3bfc5d324ba0) , Spring WebFlux embraces [ReactiveStreams](https://www.reactive-streams.org/) spec, heavily depends on [Project Reactor](https://projectreactor.io/) . The  WebSocket API in Spring WebFlux is not so rich as the one in Spring WebMVC, eg. it lacks general controller support and does not support to adapt the STOMP protocol. In the Google result of "spring webflux websocket", you will find most of the solutions are based on the Reactor 's  Processor, eg. [How To Build a Chat App Using WebFlux, WebSockets & React ](https://blog.monkey.codes/how-to-build-a-chat-app-using-webflux-websockets-react/)  is  a great article to introduce the usage of  WebSocket in  Spring WebFlux, for more info about the `UnicastProcessor` and other processors in Reactor, check [How to use Processor in Reactor Java](https://ducmanhphan.github.io/2019-08-25-How-to-use-Processor-in-Reactor-Java) from [Manh Phan](http://ducmanhphan.github.io).
+As introduced in [my original post](https://medium.com/@hantsy/reactive-programming-with-spring-5-3bfc5d324ba0) , Spring WebFlux embraces [ReactiveStreams](https://www.reactive-streams.org/) spec, heavily depends on [Project Reactor](https://projectreactor.io/) . The  WebSocket API in Spring WebFlux is not so rich as the one in Spring WebMVC, eg. it lacks general controller support and there is no way to adapt the STOMP protocol. In the Google result of "spring webflux websocket", you will find most of the solutions are based on the Reactor 's  Processor, eg. [How To Build a Chat App Using WebFlux, WebSockets & React ](https://blog.monkey.codes/how-to-build-a-chat-app-using-webflux-websockets-react/)  is  a great article to introduce the usage of  WebSocket in  Spring WebFlux, for more info about the `UnicastProcessor` and other processors in Reactor, check [How to use Processor in Reactor Java](https://ducmanhphan.github.io/2019-08-25-How-to-use-Processor-in-Reactor-Java) from [Manh Phan](http://ducmanhphan.github.io).
 
 Firstly let's create the server side. Generate a project skeleton using [Spring Initializr](https://start.spring.io).
 
@@ -76,9 +76,9 @@ class ChatSocketHandler(val mapper: ObjectMapper) : WebSocketHandler {
 }
 ```
 
-The `ChatSocketHandler` implements `WebSocketHandler` interface,  in the handle method, it will shakehands with a WebSocket client when it is connected. Here when receiving a message from  a WebSocket client,  we will cache it into a *replayable* [`Sinks.StandaloneFluxSink` ](https://projectreactor.io/docs/core/snapshot/api/reactor/core/publisher/Sinks.html), and retrieve the messages from our former Sink, and send the cached messages back to the WebSocket client.
+The `ChatSocketHandler` implements `WebSocketHandler` interface,  in the `handle` method, it will shake hands with a WebSocket client when it is connected. Here when receiving a message from  a WebSocket client,  we will cache it into a *replayable* [`Sinks.StandaloneFluxSink` ](https://projectreactor.io/docs/core/snapshot/api/reactor/core/publisher/Sinks.html), and retrieve the messages from our former Sink, and send the cached messages back to the WebSocket client.
 
-> The `UnicastProcessor` and `ReplayProcessor` , etc. are marked as deprecated in the latest version,  so here we use the newest `Sinks` instead.
+> The `UnicastProcessor` and `ReplayProcessor` , etc. are marked as deprecated in the latest version of Reactor,  so here we use the newest `Sinks` instead.
 
 Declare a simple POJO to present the WebSocket message payload in a chat application.
 
@@ -120,9 +120,9 @@ Let's move to the frontend building - creating a simple Angular app to shake han
 
 I assume you have installed the latest [NodeJS](https://www.nodejs.org) and [Angular CLI](https://cli.angular.io).
 
-Follow the official [Getting started](https://angular.io/guide/setup-local) guide to setup Angular environment and create a new project. Then open it in  your favorite IDEs, eg.  [VS Code](https://code.visualstudio.com).
+Follow the official [Getting started](https://angular.io/guide/setup-local) guide to setup Angular environment and initialize a new project. Then open the project in your favorite IDEs, eg.  [VS Code](https://code.visualstudio.com).
 
-We do not make things complex, and contribute codes in the top-level `AppComponent` directly.
+To make things simple, we will contribute codes in the top-level `AppComponent` directly. In a real world application, you should follow the official [Angular coding Style Guide](https://angular.io/guide/styleguide) to structure your project.
 
 ```typescript
 export class AppComponent implements OnInit, OnDestroy {
@@ -162,7 +162,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 Here we initialize a WebSocket connection in the `ngOnInit` method,  and listen the `onmessage` to receive a message from the server side. And in the `addMessage` method it calls `WebSocket.send` to send messages to the server side.
 
-> More info about the WebSocket API,  please go to  [MDN WebSocket page](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket).
+> More info about the details of  WebSocket API,  please go to  [MDN WebSocket page](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket).
 
 Let's  move to the  `AppComponent` template file, `app.component.html`.
 
@@ -201,9 +201,38 @@ Open two browser windows, and type some words in the input box and hit send butt
 
 ![run](./run.png)
 
- 
+Awesome, it works.
 
-It works.
+In the built-in developer tools panel in Firefox, you can track the details of the shakehands progress of  a WebSocket connection request between client and serve side.
 
-The complete codes is shared on my github account, check the [feat/reactor-sinks](https://github.com/hantsy/angular-spring-websocket-sample/tree/feat/reactor-sinks) for this demo.
+The request headers include some specific items, the *Connection: keep-alive, Upgrade* and  *Upgrade: websocket* are required to start a WebSocket connection.
+
+```bash
+GET /ws/messages HTTP/1.1
+Host: localhost:8080
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Sec-WebSocket-Version: 13
+Origin: http://localhost:4200
+Sec-WebSocket-Extensions: permessage-deflate
+Sec-WebSocket-Key: tsHaoQIeDW0eAk/fHn5kqw==
+Connection: keep-alive, Upgrade
+Cookie: PLAY_SESSION=eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImNzcmZUb2tlbiI6IjBmODcyYzUyMDM3YmJjN2UwZTI4YWRiNjQ4YTA0MGYyNjBiMDVmNzYtMTU2Njg4OTU4MjM4NS0wOThjNDQ5ZjVhOTg4Nzk1YmU0NjQ4ZmUifSwibmJmIjoxNTY2ODg5NTgyLCJpYXQiOjE1NjY4ODk1ODJ9.F4lTngIoAlp8F_vVvLsmw4XSYBtpIGd9yNxlff-8Iuo
+Pragma: no-cache
+Cache-Control: no-cache
+Upgrade: websocket
+```
+
+And the response headers looks like this.
+
+```bash
+HTTP/1.1 101 Switching Protocols
+upgrade: websocket
+connection: upgrade
+sec-websocket-accept: zq1b1kR56+jGNQ4v1bDr37jfTBA=
+```
+
+The complete codes is hosted on my github account, check the [feat/reactor-sinks](https://github.com/hantsy/angular-spring-websocket-sample/tree/feat/reactor-sinks)  branch for this demo.
 

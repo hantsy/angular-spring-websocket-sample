@@ -62,7 +62,7 @@ class ChatSocketHandler(val mapper: ObjectMapper, val messages: MessageRepositor
                 .subscribe({ println(it) }, { println(it) })
 
         return session.send(
-                Mono.delay(Duration.ofMillis(1000))
+                Mono.delay(Duration.ofMillis(100))
                         .thenMany(this.messages.getMessagesBy())
                         .map { session.textMessage(toJson(it)) }
         ).then()

@@ -20,10 +20,10 @@ import java.time.Duration
 @SpringBootTest()
 class WebSocketServerApplicationTests {
 
-    lateinit var client: WebSocketClient;
+    lateinit var client: WebSocketClient
 
     @Autowired
-    lateinit var mapper: ObjectMapper;
+    lateinit var mapper: ObjectMapper
 
     @BeforeEach
     fun setup() {
@@ -32,7 +32,7 @@ class WebSocketServerApplicationTests {
 
     @Test
     fun contextLoads() {
-        val replay = Sinks.replay<Message>(10)
+        val replay = Sinks.replay<Message>(100)
 
         client.execute(
                 URI("ws://localhost:8080/ws/messages")
@@ -40,10 +40,11 @@ class WebSocketServerApplicationTests {
             println("Starting to send messages")
             session.receive()
                     .map { mapper.readValue(it.payloadAsText, Message::class.java) }
+                    .log("received from server::")
                     .subscribe { replay.next(it) }
 
             session.send(
-                    Mono.delay(Duration.ofSeconds(100)).thenMany(
+                    Mono.delay(Duration.ofMillis(1000)).thenMany(
                             Flux.just("test message", "test message2")
                                     .map(session::textMessage)
                     )

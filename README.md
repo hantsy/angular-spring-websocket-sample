@@ -7,6 +7,14 @@ This sample is to demonstrate a chat application using the following cutting-edg
 * In-memory Reactor Sink as a message queue([feat/reactor-sinks branch](https://github.com/hantsy/angular-spring-websocket-sample/tree/feat/reactor-sinks)) or
 * Spring Data MongoDB based  `@Tailable`  query result as an infinite stream
 
+
+
+## Prerequisites
+
+* NodeJS  14
+* OpenJDK 14
+* Docker for Windows(or Mac if you are a MacOS user)
+
 ## Build 
 
 Before running the application, you should build and run client and server side respectively.
