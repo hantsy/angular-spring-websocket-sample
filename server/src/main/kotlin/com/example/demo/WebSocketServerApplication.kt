@@ -65,7 +65,7 @@ class ChatSocketHandler(val mapper: ObjectMapper, val messages: MessageRepositor
                 Mono.delay(Duration.ofMillis(100))
                         .thenMany(this.messages.getMessagesBy())
                         .map { session.textMessage(toJson(it)) }
-        ).then()
+        ).onErrorResume { session.close() }.then()
 
     }
 
