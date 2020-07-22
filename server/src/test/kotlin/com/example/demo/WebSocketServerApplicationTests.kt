@@ -41,6 +41,11 @@ class WebSocketServerApplicationTests {
                     URI("ws://localhost:8080/ws/messages")
             ) { session: WebSocketSession ->
 
+                val receiveMono = session.receive()
+                        .map { mapper.readValue(it.payloadAsText, Message::class.java) }
+                        .log("received from server::")
+                        .subscribeWith(replay)
+                        .then()
                 session
                         .send(
                                 Mono.delay(Duration.ofMillis(500)).thenMany(
@@ -48,24 +53,14 @@ class WebSocketServerApplicationTests {
                                                 .map(session::textMessage)
                                 )
                         )
-                        .then(
-                                session.receive()
-                                        .map { mapper.readValue(it.payloadAsText, Message::class.java) }
-                                        .log("received from server::")
-                                        .subscribeWith(replay)
-                                        .then()
-                        )
+                        .then(receiveMono)
             }.block(Duration.ofSeconds(5L))
 
+            // assert
             assertThat(replay.blockLast(Duration.ofSeconds(5L))?.body).isEqualTo("test message2")
         } catch (e: Exception) {
-            println(e.localizedMessage)
+            println(e.message)
         }
-
-//        `as` { StepVerifier.create(it) }
-//                .consumeNextWith { it -> assertThat(it.body).isEqualTo("test message") }
-//                .consumeNextWith { it -> assertThat(it.body).isEqualTo("test message2") }
-//                .verifyComplete()
     }
 }
 
